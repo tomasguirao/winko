@@ -1,0 +1,117 @@
+{
+  "onboarding": {
+    "step": "{current} de {total}",
+    "adultsOnly": {
+      "title": "Solo Adultos",
+      "subtitle": "Winko es una plataforma anónima para adultos.",
+      "check1": "Tengo 18 años o más",
+      "check2": "Entiendo que puede mostrarse contenido adulto",
+      "check3": "Acepto los {terms}",
+      "check3Terms": "Términos de Servicio",
+      "check4": "Acepto la {privacy}",
+      "check4Privacy": "Política de Privacidad",
+      "button": "Continuar"
+    },
+    "register": {
+      "title": "Crea tu cuenta",
+      "email": "Email",
+      "emailPlaceholder": "tu@email.com",
+      "password": "Contraseña",
+      "dob": "Fecha de nacimiento",
+      "dobPlaceholder": "DD / MM / AAAA",
+      "ageWarning": "Debes tener 18 años o más para registrarte. Proporcionar información falsa resultará en una suspensión permanente.",
+      "button": "Crear Cuenta"
+    },
+    "verifyEmail": {
+      "title": "Verifica tu email",
+      "subtitle": "Hemos enviado un enlace de verificación a:",
+      "instructions": "Por favor revisa tu bandeja de entrada y confirma tu cuenta para continuar.",
+      "resend": "Reenviar Email",
+      "button": "Ya he verificado"
+    },
+    "aboutYou": {
+      "title": "Cuéntanos sobre ti",
+      "genderQuestion": "¿Cuál es tu género?",
+      "man": "Hombre",
+      "woman": "Mujer",
+      "other": "Otro",
+      "orientationQuestion": "¿Qué te interesa ver?",
+      "men": "Hombres",
+      "women": "Mujeres",
+      "everyone": "Todos",
+      "button": "Continuar"
+    },
+    "yourIdentity": {
+      "title": "Tu identidad anónima",
+      "subtitle": "Tu identidad en Winko es:",
+      "privacy1": "Nadie verá tu nombre real.",
+      "privacy2": "Nadie verá tu email.",
+      "privacy3": "Nadie verá tu ubicación exacta.",
+      "tagline": "Eres 100% anónimo. Siempre.",
+      "button": "Me gusta"
+    },
+    "preferences": {
+      "title": "Personaliza tu feed",
+      "subtitle": "Elige las categorías que quieres ver (mínimo 1)",
+      "body": "Cuerpo",
+      "chest": "Pecho",
+      "back": "Espalda",
+      "butt": "Trasero",
+      "intimate": "Íntimo",
+      "ageRange": "Rango de edad",
+      "distance": "Distancia",
+      "nearMe": "Cerca de mí",
+      "nearMeSub": "(20 km)",
+      "myCountry": "Mi país",
+      "global": "Global",
+      "button": "Continuar"
+    },
+    "welcome": {
+      "title": "¡Bienvenido a Winko!",
+      "credits": "+20 Créditos",
+      "creditsSub": "Hemos añadido 20 créditos a tu cuenta como regalo de bienvenida.",
+      "description": "Empieza a votar y descubre lo que la gente realmente piensa.",
+      "button": "Explorar el Feed →"
+    },
+    "location": {
+      "title": "Ver contenido cerca de ti",
+      "subtitle": "Para mostrarte contenido cercano, necesitamos tu ubicación.",
+      "privacy1": "Tu ubicación exacta nunca es pública.",
+      "privacy2": "Solo verás distancias aproximadas.",
+      "allow": "Permitir Ubicación",
+      "skip": "Ahora no"
+    }
+  },
+  "feed": {
+    "anonymous": "Anónimo",
+    "noFaces": "Sin caras",
+    "away": "{distance} km de distancia",
+    "category": {
+      "body": "Cuerpo",
+      "chest": "Pecho",
+      "back": "Espalda",
+      "butt": "Trasero",
+      "intimate": "Íntimo"
+    },
+    "vote": {
+      "hot": "HOT",
+      "nice": "NICE",
+      "ok": "OK",
+      "nope": "NOPE"
+    },
+    "commentPlaceholder": "Añadir comentario...",
+    "report": "Reportar"
+  },
+  "nav": {
+    "upload": "Subir",
+    "profile": "Perfil"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Algo salió mal",
+    "retry": "Reintentar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "back": "Volver"
+  }
+}
