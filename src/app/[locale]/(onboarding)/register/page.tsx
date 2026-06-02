@@ -49,11 +49,13 @@ export default function RegisterPage() {
     }
     setLoading(true);
 
+    const locale = window.location.pathname.split('/')[1] || 'es';
     const { data, error: signUpError } = await supabase.auth.signUp({
       email: form.email,
       password: form.password,
       options: {
         data: { date_of_birth: dobToISO(form.dob) },
+        emailRedirectTo: `${window.location.origin}/${locale}/auth/callback`,
       },
     });
 

@@ -1,18 +1,45 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { Mail, RefreshCw } from 'lucide-react';
+import { Mail, RefreshCw, Loader2 } from 'lucide-react';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
+import { createClient } from '@/lib/supabase/client';
 
 export default function VerifyEmailPage() {
   const t = useTranslations('onboarding.verifyEmail');
   const router = useRouter();
+  const supabase = createClient();
+  const [checking, setChecking] = useState(false);
+  const [error, setError] = useState('');
+  const [resent, setResent] = useState(false);
 
   const email = typeof window !== 'undefined'
     ? JSON.parse(sessionStorage.getItem('register_data') || '{}').email || 'tu@email.com'
     : 'tu@email.com';
+
+  const handleVerified = async () => {
+    setChecking(true);
+    setError('');
+
+    // Recargar sesión para ver si el email fue verificado
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user?.email_confirmed_at) {
+      router.push('./about-you');
+    } else {
+      setError('Tu email aún no está verificado. Revisa tu bandeja de entrada.');
+      setChecking(false);
+    }
+  };
+
+  const handleResend = async () => {
+    await supabase.auth.resend({ type: 'signup', email });
+    setResent(true);
+    setTimeout(() => setResent(false), 5000);
+  };
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -34,15 +61,25 @@ export default function VerifyEmailPage() {
         <p className="text-white font-medium text-sm">{email}</p>
       </div>
 
-      <p className="text-white/40 text-sm text-center mb-10">{t('instructions')}</p>
+      <p className="text-white/40 text-sm text-center mb-6">{t('instructions')}</p>
 
-      <button className="flex items-center gap-2 text-white/60 text-sm mb-6 hover:text-white transition-colors">
+      {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
+
+      <button
+        onClick={handleResend}
+        className="flex items-center gap-2 text-white/60 text-sm mb-6 hover:text-white transition-colors"
+      >
         <RefreshCw className="w-4 h-4" />
-        {t('resend')}
+        {resent ? '✓ Email reenviado' : t('resend')}
       </button>
 
-      <Button onClick={() => router.push('./about-you')}>
-        {t('button')}
+      <Button onClick={handleVerified} disabled={checking}>
+        {checking ? (
+          <span className="flex items-center gap-2 justify-center">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Comprobando...
+          </span>
+        ) : t('button')}
       </Button>
     </div>
   );

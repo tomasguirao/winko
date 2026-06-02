@@ -263,7 +263,7 @@ export default function FeedPage() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <span className="text-white/40 text-xs">{t('...')}</span>
+          <span className="text-white/40 text-xs">Upload</span>
         </button>
         <button className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30 overflow-hidden">
           <Image src="/logo-icon.PNG" alt="Winko" width={40} height={40} className="object-contain" />

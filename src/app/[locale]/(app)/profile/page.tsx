@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Plus, ChevronRight, BarChart2, Bell, ImageIcon, Trash2, User, Lock, Shield, Eye, Cookie, HelpCircle } from 'lucide-react';
+import { Plus, ChevronRight, BarChart2, Bell, ImageIcon, Trash2, User, Lock, Shield, Eye, Cookie, HelpCircle, LogOut } from 'lucide-react';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { createClient } from '@/lib/supabase/client';
 import { useEffect, useState } from 'react';
@@ -42,6 +42,11 @@ export default function ProfilePage() {
   const router = useRouter();
   const supabase = createClient();
   const [profile, setProfile] = useState<UserProfile>(EMPTY_USER);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('../adults-only');
+  };
 
   useEffect(() => {
     async function load() {
@@ -147,6 +152,8 @@ export default function ProfilePage() {
           <MenuItem icon={User} label="Editar perfil" description="Actualiza tu información personal." onClick={() => {}} />
           <Divider />
           <MenuItem icon={Lock} label="Cambiar contraseña" description="Mantén tu cuenta segura." onClick={() => {}} />
+          <Divider />
+          <MenuItem icon={LogOut} label="Cerrar sesión" description="Salir de tu cuenta." onClick={handleLogout} />
           <Divider />
           <MenuItem icon={Trash2} label="Eliminar cuenta" description="Elimina tu cuenta y todos tus datos permanentemente." onClick={() => {}} danger />
 
