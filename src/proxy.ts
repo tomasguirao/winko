@@ -41,13 +41,12 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { data: { user } } = await supabase.auth.getUser()
+  // Usar getSession() en vez de getUser() — lee desde cookies sin llamada a red
+  const { data: { session } } = await supabase.auth.getSession()
 
-  // Detectar locale actual
   const locale = pathname.startsWith('/en') ? 'en' : 'es'
 
-  // Sin sesión → adults-only
-  if (!user) {
+  if (!session) {
     return NextResponse.redirect(new URL(`/${locale}/adults-only`, request.url))
   }
 
