@@ -153,7 +153,7 @@ export default function FeedPage() {
       {/* Área vacía — pronto habrá fotos */}
       <div className="flex-1 mx-4 rounded-3xl bg-[#111] flex flex-col items-center justify-center gap-4">
         <div className="w-24 h-24 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
-          <Image src="/logo-icon.PNG" alt="Winko" width={48} height={48} className="object-contain opacity-40" />
+          <Image src="/icon.PNG" alt="Winko" width={48} height={48} className="object-contain opacity-40" />
         </div>
         <p className="text-white/30 text-sm text-center px-8">Pronto habrá fotos para valorar</p>
       </div>

@@ -14,8 +14,7 @@ export function BottomNav() {
   const isProfile = pathname.includes('/profile');
   const isFeed    = pathname.includes('/feed');
 
-  // Icono central — usar icon.png si existe, si no logo-icon.PNG
-  const centerIcon = '/logo-icon.PNG';
+  const centerIcon = '/icon.PNG';
 
   return (
     <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-black border-t border-white/5 px-8 pt-3 pb-6 z-50">

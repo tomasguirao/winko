@@ -22,7 +22,7 @@ export default function YourIdentityPage() {
       <div className="flex items-center gap-3 mb-6">
         <span className="text-4xl">✨</span>
         <div className="w-24 h-24 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden">
-          <Image src="/logo-icon.PNG" alt="Winko" width={64} height={64} className="object-contain" />
+          <Image src="/icon.PNG" alt="Winko" width={64} height={64} className="object-contain" />
         </div>
         <span className="text-4xl">✨</span>
       </div>

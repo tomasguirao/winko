@@ -228,7 +228,7 @@ export default function UploadPage() {
             <span className="text-yellow-400 text-xs font-semibold">Upload</span>
           </button>
           <button onClick={() => router.push('../feed')} className="w-12 h-12 rounded-full bg-yellow-400 flex items-center justify-center -mt-4 shadow-lg shadow-yellow-400/30">
-            <Image src="/logo-icon.PNG" alt="Winko" width={36} height={36} className="object-contain" />
+            <Image src="/icon.PNG" alt="Winko" width={36} height={36} className="object-contain" />
           </button>
           <button onClick={() => router.push('../profile')} className="flex flex-col items-center gap-1">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
