@@ -29,9 +29,9 @@ export function BottomNav() {
         {/* Feed — botón central */}
         <button
           onClick={() => router.push(`/${locale}/feed`)}
-          className={`w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30 overflow-hidden transition-transform active:scale-90 ${isFeed ? 'ring-2 ring-white/30' : ''}`}
+          className="w-16 h-16 -mt-6 flex items-center justify-center transition-transform active:scale-90"
         >
-          <Image src={centerIcon} alt="Winko" width={40} height={40} className="object-contain" />
+          <Image src={centerIcon} alt="Winko" width={64} height={64} className="object-contain" />
         </button>
 
         {/* Profile */}
