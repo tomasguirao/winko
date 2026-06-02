@@ -1,6 +1,7 @@
-import { redirect } from 'next/navigation';
-import Link from 'next/link';
-import Image from 'next/image';
+import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import Image from 'next/image'
+import { createClient } from '@/lib/supabase/server'
 
 const navItems = [
   { href: 'dashboard',  label: 'Dashboard',   icon: '📊' },
@@ -11,9 +12,33 @@ const navItems = [
   { href: 'credits',    label: 'Credits',      icon: '💳' },
   { href: 'stats',      label: 'Statistics',   icon: '📈' },
   { href: 'legal',      label: 'Legal Docs',   icon: '📄' },
-];
+]
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  const supabase = await createClient()
+
+  // Verificar sesión
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect(`/${locale}/login`)
+
+  // Verificar que es admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('is_admin, status, nickname')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile || !profile.is_admin || profile.status !== 'active') {
+    redirect(`/${locale}/feed`)
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] flex">
       {/* Sidebar */}
@@ -26,7 +51,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           {navItems.map(item => (
             <Link
               key={item.href}
-              href={`./admin/${item.href}`}
+              href={`/${locale}/${item.href}`}
               className="flex items-center gap-3 px-4 py-2.5 text-white/60 hover:text-white hover:bg-white/5 transition-colors text-sm"
             >
               <span>{item.icon}</span>
@@ -35,6 +60,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
         <div className="p-4 border-t border-white/5">
+          <p className="text-white/30 text-xs mb-1">{profile.nickname}</p>
           <p className="text-white/20 text-xs">Winko Admin v1.0</p>
         </div>
       </aside>
@@ -44,5 +70,5 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {children}
       </main>
     </div>
-  );
+  )
 }
