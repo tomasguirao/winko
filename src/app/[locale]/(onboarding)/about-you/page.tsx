@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
+import { createClient } from '@/lib/supabase/client';
 import type { Gender, Orientation } from '@/types';
 
 const GenderIcon = ({ gender }: { gender: Gender }) => {
@@ -33,12 +34,21 @@ export default function AboutYouPage() {
 
   const [gender, setGender] = useState<Gender | null>(null);
   const [orientation, setOrientation] = useState<Orientation | null>(null);
+  const [loading, setLoading] = useState(false);
+  const supabase = createClient();
 
   const canContinue = gender !== null && orientation !== null;
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
+    if (!canContinue) return;
+    setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('users').update({ gender, orientation }).eq('id', user.id);
+    }
     sessionStorage.setItem('about_you', JSON.stringify({ gender, orientation }));
     router.push('./your-identity');
+    setLoading(false);
   };
 
   const genderOptions: { value: Gender; label: string }[] = [

@@ -3,7 +3,6 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { routing } from '@/i18n/routing';
-import '../globals.css';
 
 export const metadata: Metadata = {
   title: 'Winko — Get rated. Stay anonymous.',
@@ -41,7 +40,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className="dark">
-      <body className="bg-black text-white antialiased">
+      <body className="bg-black text-white antialiased" suppressHydrationWarning>
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>

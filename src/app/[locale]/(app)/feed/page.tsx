@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Flag, Send, Plus } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils/cn';
 import type { Reaction } from '@/types';
 
@@ -48,16 +49,7 @@ export default function FeedPage() {
         </div>
 
         {/* Logo */}
-        <div className="flex items-center gap-1">
-          <span className="text-white font-black text-xl tracking-tight">WINKO</span>
-          <div className="w-7 h-7 rounded-full bg-yellow-400 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" className="w-5 h-5">
-              <circle cx="35" cy="40" r="7" fill="black" />
-              <path d="M 55 32 Q 65 40 75 32" stroke="black" strokeWidth="5" fill="none" strokeLinecap="round" />
-              <path d="M 22 62 Q 50 82 78 62" stroke="black" strokeWidth="5" fill="none" strokeLinecap="round" />
-            </svg>
-          </div>
-        </div>
+        <Image src="/logo.PNG" alt="Winko" width={100} height={36} className="object-contain" priority />
 
         {/* Hot streak */}
         <button className="text-2xl">🔥</button>
@@ -179,12 +171,8 @@ export default function FeedPage() {
         </button>
 
         {/* Center logo button */}
-        <button className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30">
-          <svg viewBox="0 0 100 100" className="w-9 h-9">
-            <circle cx="35" cy="40" r="8" fill="black" />
-            <path d="M 55 30 Q 67 42 78 30" stroke="black" strokeWidth="7" fill="none" strokeLinecap="round" />
-            <path d="M 20 65 Q 50 88 80 65" stroke="black" strokeWidth="7" fill="none" strokeLinecap="round" />
-          </svg>
+        <button className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30 overflow-hidden">
+          <Image src="/logo-icon.PNG" alt="Winko" width={40} height={40} className="object-contain" />
         </button>
 
         <button className="flex flex-col items-center gap-1">

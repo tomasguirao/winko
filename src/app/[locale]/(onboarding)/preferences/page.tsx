@@ -7,6 +7,7 @@ import { MapPin, Flag, Globe } from 'lucide-react';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils/cn';
+import { createClient } from '@/lib/supabase/client';
 import type { Category, Distance } from '@/types';
 
 const categories: { value: Category; emoji: string }[] = [
@@ -17,10 +18,18 @@ const categories: { value: Category; emoji: string }[] = [
   { value: 'intimate', emoji: '🔞' },
 ];
 
+const ageRanges: { label: string; min: number; max: number }[] = [
+  { label: '18-24', min: 18, max: 24 },
+  { label: '25-34', min: 25, max: 34 },
+  { label: '35-44', min: 35, max: 44 },
+  { label: '45-54', min: 45, max: 54 },
+  { label: '55+',   min: 55, max: 99 },
+];
+
 const distances: { value: Distance; icon: React.ElementType; label: string; sub?: string }[] = [
-  { value: '20km', icon: MapPin, label: 'nearMe', sub: 'nearMeSub' },
-  { value: 'country', icon: Flag, label: 'myCountry' },
-  { value: 'global', icon: Globe, label: 'global' },
+  { value: '20km',    icon: MapPin, label: 'nearMe', sub: 'nearMeSub' },
+  { value: 'country', icon: Flag,   label: 'myCountry' },
+  { value: 'global',  icon: Globe,  label: 'global' },
 ];
 
 export default function PreferencesPage() {
@@ -28,7 +37,7 @@ export default function PreferencesPage() {
   const router = useRouter();
 
   const [selectedCategories, setSelectedCategories] = useState<Category[]>(['body', 'chest', 'back', 'butt']);
-  const [ageRange, setAgeRange] = useState<[number, number]>([18, 99]);
+  const [selectedAgeRanges, setSelectedAgeRanges] = useState<string[]>(['18-24', '25-34', '35-44']);
   const [distance, setDistance] = useState<Distance>('20km');
 
   const toggleCategory = (cat: Category) => {
@@ -39,11 +48,34 @@ export default function PreferencesPage() {
     );
   };
 
-  const handleContinue = () => {
+  const toggleAgeRange = (label: string) => {
+    setSelectedAgeRanges(prev =>
+      prev.includes(label)
+        ? prev.length > 1 ? prev.filter(r => r !== label) : prev
+        : [...prev, label]
+    );
+  };
+
+  const supabase = createClient();
+
+  const handleContinue = async () => {
+    const selected = ageRanges.filter(r => selectedAgeRanges.includes(r.label));
+    const minAge = Math.min(...selected.map(r => r.min));
+    const maxAge = Math.max(...selected.map(r => r.max));
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('user_preferences').upsert({
+        user_id: user.id,
+        preferred_categories: selectedCategories,
+        age_range_min: minAge,
+        age_range_max: maxAge,
+        preferred_distance: distance,
+      });
+    }
     sessionStorage.setItem('preferences', JSON.stringify({
       categories: selectedCategories,
-      age_range_min: ageRange[0],
-      age_range_max: ageRange[1],
+      age_range_min: minAge,
+      age_range_max: maxAge,
       distance,
     }));
     router.push('./welcome');
@@ -87,21 +119,25 @@ export default function PreferencesPage() {
         ))}
       </div>
 
-      {/* Age range */}
+      {/* Age ranges */}
       <div className="mb-6">
         <p className="text-white/60 text-sm mb-3">{t('ageRange')}</p>
-        <div className="flex items-center justify-between text-white/40 text-xs mb-2">
-          <span>{ageRange[0]}</span>
-          <span>{ageRange[1]}</span>
+        <div className="flex flex-wrap gap-2">
+          {ageRanges.map(({ label }) => (
+            <button
+              key={label}
+              onClick={() => toggleAgeRange(label)}
+              className={cn(
+                'px-4 py-2 rounded-full border-2 text-sm font-semibold transition-all',
+                selectedAgeRanges.includes(label)
+                  ? 'border-yellow-400 bg-yellow-400/10 text-yellow-400'
+                  : 'border-white/10 bg-white/5 text-white/60'
+              )}
+            >
+              {label}
+            </button>
+          ))}
         </div>
-        <input
-          type="range"
-          min={18}
-          max={99}
-          value={ageRange[1]}
-          onChange={e => setAgeRange([ageRange[0], Number(e.target.value)])}
-          className="w-full accent-yellow-400"
-        />
       </div>
 
       {/* Distance */}

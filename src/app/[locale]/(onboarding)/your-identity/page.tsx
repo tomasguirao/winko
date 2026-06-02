@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Mail, MapPin, User } from 'lucide-react';
+import Image from 'next/image';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
 
@@ -18,17 +19,12 @@ export default function YourIdentityPage() {
       <ProgressBar current={5} total={8} />
 
       {/* Wink mascot */}
-      <div className="relative mb-6">
-        <div className="text-5xl">✨</div>
-        <div className="w-24 h-24 rounded-full bg-yellow-400 flex items-center justify-center mx-auto">
-          {/* Wink face SVG */}
-          <svg viewBox="0 0 100 100" className="w-16 h-16">
-            <circle cx="35" cy="40" r="6" fill="black" />
-            <path d="M 58 32 Q 65 38 72 32" stroke="black" strokeWidth="4" fill="none" strokeLinecap="round" />
-            <path d="M 25 60 Q 50 80 75 60" stroke="black" strokeWidth="4" fill="none" strokeLinecap="round" />
-          </svg>
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-4xl">✨</span>
+        <div className="w-24 h-24 rounded-full bg-yellow-400 flex items-center justify-center overflow-hidden">
+          <Image src="/logo-icon.PNG" alt="Winko" width={64} height={64} className="object-contain" />
         </div>
-        <div className="text-5xl">✨</div>
+        <span className="text-4xl">✨</span>
       </div>
 
       <h1 className="text-2xl font-black text-white mb-2 text-center">{t('title')}</h1>

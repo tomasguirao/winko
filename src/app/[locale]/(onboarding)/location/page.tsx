@@ -5,32 +5,44 @@ import { useRouter } from 'next/navigation';
 import { MapPin, Lock, Shield } from 'lucide-react';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
+import { createClient } from '@/lib/supabase/client';
 
 export default function LocationPage() {
   const t = useTranslations('onboarding.location');
   const router = useRouter();
+  const supabase = createClient();
+
+  const saveLocation = async (lat: number | null, lng: number | null, permission: boolean) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await supabase.from('users').update({
+        location_permission: permission,
+        ...(lat && lng ? {
+          latitude: lat,
+          longitude: lng,
+          location: `POINT(${lng} ${lat})`,
+        } : {}),
+      }).eq('id', user.id);
+    }
+  };
 
   const handleAllow = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          sessionStorage.setItem('location', JSON.stringify({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            permission: true,
-          }));
+        async (pos) => {
+          await saveLocation(pos.coords.latitude, pos.coords.longitude, true);
           router.push('../../feed');
         },
-        () => {
-          sessionStorage.setItem('location', JSON.stringify({ permission: false }));
+        async () => {
+          await saveLocation(null, null, false);
           router.push('../../feed');
         }
       );
     }
   };
 
-  const handleSkip = () => {
-    sessionStorage.setItem('location', JSON.stringify({ permission: false }));
+  const handleSkip = async () => {
+    await saveLocation(null, null, false);
     router.push('../../feed');
   };
 

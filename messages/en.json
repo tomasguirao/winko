@@ -1,4 +1,16 @@
 {
+  "splash": {
+    "tagline1": "Get rated.",
+    "tagline2": "Stay ",
+    "tagline2bold": "anonymous.",
+    "feature1": "100%\nAnonymous",
+    "feature2": "No faces\nallowed",
+    "feature3": "Your privacy\nis safe",
+    "feature4": "Adults only\n(18+)",
+    "feature5": "Honest\nopinions",
+    "cta": "Get Started",
+    "login": "I already have an account"
+  },
   "onboarding": {
     "step": "{current} of {total}",
     "adultsOnly": {
@@ -6,9 +18,9 @@
       "subtitle": "Winko is an anonymous platform for adults.",
       "check1": "I am 18 years old or older",
       "check2": "I understand that adult content may be displayed",
-      "check3": "I accept the {terms}",
+      "check3pre": "I accept the ",
       "check3Terms": "Terms of Service",
-      "check4": "I accept the {privacy}",
+      "check4pre": "I accept the ",
       "check4Privacy": "Privacy Policy",
       "button": "Continue"
     },

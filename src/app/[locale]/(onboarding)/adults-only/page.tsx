@@ -26,7 +26,6 @@ export default function AdultsOnlyPage() {
 
   const handleContinue = () => {
     if (!allChecked) return;
-    // Store consents with timestamp
     sessionStorage.setItem('consent_adults_only', JSON.stringify({
       ...checks,
       timestamp: new Date().toISOString(),
@@ -35,6 +34,27 @@ export default function AdultsOnlyPage() {
     }));
     router.push('./register');
   };
+
+  const checkItems = [
+    { key: 'age' as const, content: <span>{t('check1')}</span> },
+    { key: 'content' as const, content: <span>{t('check2')}</span> },
+    {
+      key: 'terms' as const, content: (
+        <span>
+          {t('check3pre')}
+          <span className="text-yellow-400 underline">{t('check3Terms')}</span>
+        </span>
+      )
+    },
+    {
+      key: 'privacy' as const, content: (
+        <span>
+          {t('check4pre')}
+          <span className="text-yellow-400 underline">{t('check4Privacy')}</span>
+        </span>
+      )
+    },
+  ];
 
   return (
     <div className="w-full flex flex-col items-center">
@@ -51,41 +71,24 @@ export default function AdultsOnlyPage() {
 
       {/* Checkboxes */}
       <div className="w-full flex flex-col gap-4 mb-8">
-        {[
-          { key: 'age', label: t('check1') },
-          { key: 'content', label: t('check2') },
-          { key: 'terms', label: null, custom: true, type: 'terms' },
-          { key: 'privacy', label: null, custom: true, type: 'privacy' },
-        ].map(({ key, label, custom, type }) => (
+        {checkItems.map(({ key, content }) => (
           <button
             key={key}
-            onClick={() => toggle(key as keyof typeof checks)}
+            onClick={() => toggle(key)}
             className="flex items-start gap-3 text-left"
           >
             <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors ${
-              checks[key as keyof typeof checks]
+              checks[key]
                 ? 'bg-yellow-400 border-yellow-400'
                 : 'border-white/30'
             }`}>
-              {checks[key as keyof typeof checks] && (
+              {checks[key] && (
                 <svg className="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               )}
             </div>
-            <span className="text-white/80 text-sm leading-snug">
-              {custom && type === 'terms' ? (
-                <>
-                  {t('check3').replace('{terms}', '')}
-                  <span className="text-yellow-400 underline">{t('check3Terms')}</span>
-                </>
-              ) : custom && type === 'privacy' ? (
-                <>
-                  {t('check4').replace('{privacy}', '')}
-                  <span className="text-yellow-400 underline">{t('check4Privacy')}</span>
-                </>
-              ) : label}
-            </span>
+            <span className="text-white/80 text-sm leading-snug">{content}</span>
           </button>
         ))}
       </div>
