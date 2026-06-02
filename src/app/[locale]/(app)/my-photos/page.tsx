@@ -33,12 +33,13 @@ export default function MyPhotosPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('photos')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
+      console.log('my-photos:', data?.length, 'photos, error:', error?.message);
       setPhotos(data ?? []);
 
       // Thumbnails

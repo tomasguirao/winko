@@ -26,7 +26,7 @@ export default async function AdminLayout({
 
   // Verificar sesión via cookies (más fiable en SSR que getUser)
   const { data: { session } } = await supabase.auth.getSession()
-  if (!session) redirect(`/${locale}/login`)
+  if (!session) redirect(`/${locale}/admin-login`)
 
   // Verificar que es admin
   const { data: profile } = await supabase

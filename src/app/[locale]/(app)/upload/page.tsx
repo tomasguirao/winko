@@ -63,7 +63,7 @@ export default function UploadPage() {
 
       // Call edge function
       const { data: { session } } = await supabase.auth.getSession();
-      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/upload-photo`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/upload-photo`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,16 @@ export default function UploadPage() {
         body: JSON.stringify({ storage_path: path, category, visibility }),
       });
 
-      router.push('my-photos');
+      if (!res.ok) {
+        const errBody = await res.text();
+        console.error('upload-photo error:', res.status, errBody);
+        throw new Error(`Error del servidor: ${res.status}`);
+      }
+
+      const result = await res.json();
+      console.log('upload-photo result:', result);
+
+      router.push(`/${window.location.pathname.split('/')[1]}/my-photos`);
     } catch (e: any) {
       setError(e.message ?? 'Error al subir la foto');
       setUploading(false);
