@@ -6,7 +6,10 @@ import { routing } from './i18n/routing'
 const intlMiddleware = createIntlMiddleware(routing)
 
 const PROTECTED_ROUTES = ['/feed', '/upload', '/profile', '/my-photos', '/alerts', '/buy-credits', '/results']
-const ADMIN_ROUTES = ['/dashboard', '/moderation', '/users', '/reports', '/comments', '/credits', '/stats', '/legal']
+const ADMIN_ROUTES = ['/dashboard', '/moderation', '/users', '/reports', '/comments', '/credits', '/stats']
+// /legal/terms y /legal/privacy son públicas — solo /legal exacto es admin
+const ADMIN_LEGAL = ['/legal']
+
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -15,7 +18,9 @@ export async function proxy(request: NextRequest) {
   const pathnameWithoutLocale = pathname.replace(/^\/(es|en)/, '') || '/'
 
   const isProtected = PROTECTED_ROUTES.some(r => pathnameWithoutLocale.startsWith(r))
+  // /legal exacto → admin; /legal/terms y /legal/privacy → públicas
   const isAdmin = ADMIN_ROUTES.some(r => pathnameWithoutLocale.startsWith(r))
+    || ADMIN_LEGAL.some(r => pathnameWithoutLocale === r)
 
   // Rutas públicas y onboarding — sin verificar sesión
   if (!isProtected && !isAdmin) {
