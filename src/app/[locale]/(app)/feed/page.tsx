@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { cn } from '@/lib/utils/cn';
 import { createClient } from '@/lib/supabase/client';
 import { useCredits } from '@/lib/supabase/hooks';
+import { BottomNav } from '@/components/layout/BottomNav';
 import type { Reaction } from '@/types';
 
 type FeedPhoto = {
@@ -179,24 +180,7 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div className="flex items-center justify-around px-8 pb-8 pt-2 border-t border-white/5">
-        <button onClick={() => router.push('upload')} className="flex flex-col items-center gap-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-          <span className="text-white/40 text-xs">Upload</span>
-        </button>
-        <button className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30 overflow-hidden">
-          <Image src="/logo-icon.PNG" alt="Winko" width={40} height={40} className="object-contain" />
-        </button>
-        <button onClick={() => router.push('profile')} className="flex flex-col items-center gap-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-          </svg>
-          <span className="text-white/40 text-xs">Profile</span>
-        </button>
-      </div>
+      <BottomNav />
     </div>
   );
 
@@ -321,24 +305,7 @@ export default function FeedPage() {
         </div>
       </div>
 
-      {/* Bottom nav */}
-      <div className="flex items-center justify-around px-8 pb-8 pt-2 border-t border-white/5">
-        <button onClick={() => router.push('upload')} className="flex flex-col items-center gap-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-          <span className="text-white/40 text-xs">Upload</span>
-        </button>
-        <button className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30 overflow-hidden">
-          <Image src="/logo-icon.PNG" alt="Winko" width={40} height={40} className="object-contain" />
-        </button>
-        <button onClick={() => router.push('profile')} className="flex flex-col items-center gap-1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-          </svg>
-          <span className="text-white/40 text-xs">Profile</span>
-        </button>
-      </div>
+      <BottomNav />
     </div>
   );
 }
