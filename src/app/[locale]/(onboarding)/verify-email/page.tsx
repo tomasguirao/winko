@@ -30,17 +30,20 @@ export default function VerifyEmailPage() {
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user?.email_confirmed_at) {
+      // Sesión activa y verificado → continuar onboarding
       router.push('./about-you');
       return;
     }
 
-    // Sin sesión — verificó en otro dispositivo → redirigir al login
     if (!user) {
-      router.push(`/${locale}/login`);
+      // Verificó en otro dispositivo — necesita hacer login para establecer sesión aquí
+      // Redirigimos al login con mensaje de éxito
+      router.push(`/${locale}/login?verified=1`);
       return;
     }
 
-    setError('Tu email aún no está verificado. Abre el enlace del email y vuelve aquí.');
+    // Tiene sesión pero aún no verificó el email
+    setError('Tu email aún no está verificado. Revisa tu bandeja de entrada.');
     setChecking(false);
   };
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
@@ -9,8 +9,10 @@ import { createClient } from '@/lib/supabase/client';
 export default function LoginPage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = params.locale as string ?? 'es';
   const supabase = createClient();
+  const isVerified = searchParams.get('verified') === '1';
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
@@ -29,7 +31,12 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    router.push(`/${locale}/feed`);
+    // Si viene de verificación → continuar onboarding
+    if (isVerified) {
+      router.push(`/${locale}/about-you`);
+    } else {
+      router.push(`/${locale}/feed`);
+    }
   };
 
   const handleForgot = async () => {
@@ -40,7 +47,18 @@ export default function LoginPage() {
 
   return (
     <div className="w-full flex flex-col items-center">
-      <div className="w-full flex flex-col gap-4 mb-6 mt-4">
+
+      {/* Banner si viene de verificación exitosa */}
+      {isVerified && (
+        <div className="w-full bg-green-500/10 border border-green-500/30 rounded-2xl px-4 py-3 mb-6 flex items-center gap-2">
+          <span className="text-green-400 text-lg">✅</span>
+          <p className="text-green-400 text-sm font-medium">
+            Email verificado. Inicia sesión para continuar.
+          </p>
+        </div>
+      )}
+
+      <div className="w-full flex flex-col gap-4 mb-6 mt-2">
         <div>
           <label className="text-white/60 text-sm mb-1.5 block">Email</label>
           <input
@@ -72,7 +90,11 @@ export default function LoginPage() {
           ¿Olvidaste tu contraseña?
         </button>
 
-        {error && <p className={`text-sm text-center ${error.includes('enviado') ? 'text-green-400' : 'text-red-400'}`}>{error}</p>}
+        {error && (
+          <p className={`text-sm text-center ${error.includes('enviado') ? 'text-green-400' : 'text-red-400'}`}>
+            {error}
+          </p>
+        )}
       </div>
 
       <Button onClick={handleLogin} disabled={loading || !form.email || !form.password}>
