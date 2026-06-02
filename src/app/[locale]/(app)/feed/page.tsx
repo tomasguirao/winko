@@ -133,17 +133,70 @@ export default function FeedPage() {
     </div>
   );
 
+  // Sin fotos — mostrar el feed vacío pero navegable
   if (!current) return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-center">
-      <p className="text-5xl mb-4">📸</p>
-      <p className="text-white font-black text-xl mb-2">No hay fotos aún</p>
-      <p className="text-white/40 text-sm mb-6">Sé el primero en subir una foto</p>
-      <button
-        onClick={() => window.location.href = 'upload'}
-        className="bg-yellow-400 text-black font-black px-6 py-3 rounded-2xl"
-      >
-        Subir foto
-      </button>
+    <div className="min-h-screen bg-black flex flex-col max-w-md mx-auto">
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+        <div onClick={() => router.push('buy-credits')} className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5 cursor-pointer">
+          <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center">
+            <span className="text-black text-xs font-black">C</span>
+          </div>
+          <span className="text-white font-bold text-sm">{credits}</span>
+          <Plus className="w-3.5 h-3.5 text-white/60" />
+        </div>
+        <Image src="/logo.PNG" alt="Winko" width={100} height={36} className="object-contain" priority />
+        <button className="text-2xl">🔥</button>
+      </div>
+
+      {/* Área vacía — pronto habrá fotos */}
+      <div className="flex-1 mx-4 rounded-3xl bg-[#111] flex flex-col items-center justify-center gap-4">
+        <div className="w-24 h-24 rounded-full bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center">
+          <Image src="/logo-icon.PNG" alt="Winko" width={48} height={48} className="object-contain opacity-40" />
+        </div>
+        <p className="text-white/30 text-sm text-center px-8">Pronto habrá fotos para valorar</p>
+      </div>
+
+      {/* Vote buttons placeholder */}
+      <div className="grid grid-cols-4 gap-3 px-4 py-4 opacity-30">
+        {reactions.map(r => (
+          <div key={r.value} className="flex flex-col items-center gap-1.5 rounded-full w-16 h-16 border-2 border-white/20 bg-white/5 justify-center">
+            <span className="text-2xl">{r.emoji}</span>
+          </div>
+        ))}
+      </div>
+      <div className="grid grid-cols-4 gap-3 px-4 pb-2 opacity-30">
+        {reactions.map(r => <p key={r.value} className="text-center text-white/60 text-xs font-bold">{r.label}</p>)}
+      </div>
+
+      {/* Comment input placeholder */}
+      <div className="px-4 pb-4 opacity-30">
+        <div className="flex items-center gap-3 bg-white/8 border border-white/10 rounded-2xl px-4 py-3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-5 h-5 text-white/40">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          <span className="text-white/30 text-sm">Add comment...</span>
+        </div>
+      </div>
+
+      {/* Bottom nav */}
+      <div className="flex items-center justify-around px-8 pb-8 pt-2 border-t border-white/5">
+        <button onClick={() => router.push('upload')} className="flex flex-col items-center gap-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <span className="text-white/40 text-xs">Upload</span>
+        </button>
+        <button className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30 overflow-hidden">
+          <Image src="/logo-icon.PNG" alt="Winko" width={40} height={40} className="object-contain" />
+        </button>
+        <button onClick={() => router.push('profile')} className="flex flex-col items-center gap-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+          </svg>
+          <span className="text-white/40 text-xs">Profile</span>
+        </button>
+      </div>
     </div>
   );
 
