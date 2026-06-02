@@ -24,15 +24,32 @@ export default function VerifyEmailPage() {
     setChecking(true);
     setError('');
 
-    // Recargar sesión para ver si el email fue verificado
+    // Forzar refresh de sesión para obtener el estado más reciente
+    await supabase.auth.refreshSession();
+
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user?.email_confirmed_at) {
       router.push('./about-you');
-    } else {
-      setError('Tu email aún no está verificado. Revisa tu bandeja de entrada.');
-      setChecking(false);
+      return;
     }
+
+    // Segundo intento — a veces el token tarda en propagarse
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user?.email_confirmed_at) {
+      router.push('./about-you');
+      return;
+    }
+
+    // Si verificó en otra pestaña, puede que necesite hacer login de nuevo
+    if (!session) {
+      setError('Sesión expirada. Por favor, inicia sesión con tu email y contraseña.');
+      setChecking(false);
+      return;
+    }
+
+    setError('Tu email aún no está verificado. Abre el enlace del email y luego vuelve aquí.');
+    setChecking(false);
   };
 
   const handleResend = async () => {
