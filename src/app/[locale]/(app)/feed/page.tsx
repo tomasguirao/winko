@@ -41,10 +41,15 @@ export default function FeedPage() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
 
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('feed_photos')
       .select('*')
       .limit(20);
+
+    if (error) {
+      console.error('Feed error:', error.message, error.code);
+    }
+    console.log('Feed data:', data?.length, 'photos');
 
     if (!data?.length) { setLoading(false); return; }
 
@@ -130,9 +135,15 @@ export default function FeedPage() {
 
   if (!current) return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-center">
-      <p className="text-5xl mb-4">🎉</p>
-      <p className="text-white font-black text-xl mb-2">¡Has visto todo!</p>
-      <p className="text-white/40 text-sm">Vuelve más tarde para ver nuevas fotos</p>
+      <p className="text-5xl mb-4">📸</p>
+      <p className="text-white font-black text-xl mb-2">No hay fotos aún</p>
+      <p className="text-white/40 text-sm mb-6">Sé el primero en subir una foto</p>
+      <button
+        onClick={() => window.location.href = 'upload'}
+        className="bg-yellow-400 text-black font-black px-6 py-3 rounded-2xl"
+      >
+        Subir foto
+      </button>
     </div>
   );
 
