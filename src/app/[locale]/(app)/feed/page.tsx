@@ -1,20 +1,19 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
-import { Flag, Send, Plus } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Flag, Send, Plus, Shield } from 'lucide-react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils/cn';
+import { createClient } from '@/lib/supabase/client';
+import { useCredits } from '@/lib/supabase/hooks';
 import type { Reaction } from '@/types';
 
-// Mock data — se reemplaza con Supabase
-const MOCK_PHOTO = {
-  id: '1',
-  nickname: 'Nova7421',
-  distance_km: 12,
-  category: 'body' as const,
-  current: 2,
-  total: 5,
+type FeedPhoto = {
+  id: string; nickname: string; age: number; gender: string;
+  distance_km: number | null; category: string;
+  storage_path: string; photo_url?: string;
 };
 
 const reactions: { value: Reaction; emoji: string; label: string; border: string; bg: string }[] = [
@@ -26,32 +25,133 @@ const reactions: { value: Reaction; emoji: string; label: string; border: string
 
 export default function FeedPage() {
   const t = useTranslations('feed');
+  const router = useRouter();
+  const supabase = createClient();
+  const credits = useCredits();
+
+  const [queue, setQueue] = useState<FeedPhoto[]>([]);
+  const [current, setCurrent] = useState<FeedPhoto | null>(null);
+  const [index, setIndex] = useState(0);
   const [voted, setVoted] = useState<Reaction | null>(null);
   const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleVote = (reaction: Reaction) => {
-    setVoted(reaction);
-    // TODO: save vote to Supabase, deduct 1 credit
+  const loadFeed = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const { data } = await supabase
+      .from('feed_photos')
+      .select('*')
+      .limit(20);
+
+    if (!data?.length) { setLoading(false); return; }
+
+    // Get signed URLs
+    const withUrls = await Promise.all(data.map(async (p: FeedPhoto) => {
+      const { data: signed } = await supabase.storage
+        .from('photos').createSignedUrl(p.storage_path, 3600);
+      return { ...p, photo_url: signed?.signedUrl };
+    }));
+
+    setQueue(withUrls);
+    setCurrent(withUrls[0]);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { loadFeed(); }, [loadFeed]);
+
+  // Load more when near end
+  useEffect(() => {
+    if (queue.length > 0 && index >= queue.length - 3) loadFeed();
+  }, [index]);
+
+  const nextPhoto = () => {
+    const next = index + 1;
+    setIndex(next);
+    setCurrent(queue[next] ?? null);
+    setVoted(null);
+    setComment('');
   };
+
+  const handleVote = async (reaction: Reaction) => {
+    if (!current || voted || submitting) return;
+    setVoted(reaction);
+    setSubmitting(true);
+
+    const { data: { session } } = await supabase.auth.getSession();
+    await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/vote`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session?.access_token}`,
+      },
+      body: JSON.stringify({ photo_id: current.id, reaction }),
+    });
+
+    setSubmitting(false);
+    // Auto-advance after short delay
+    setTimeout(nextPhoto, 600);
+  };
+
+  const handleComment = async () => {
+    if (!comment.trim() || !current) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('comments').insert({
+      photo_id: current.id,
+      user_id: user.id,
+      content: comment.trim(),
+    });
+    setComment('');
+  };
+
+  const handleReport = async () => {
+    if (!current) return;
+    const reason = prompt('Motivo del reporte:');
+    if (!reason) return;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    await supabase.from('reports').insert({
+      photo_id: current.id,
+      reporter_id: user.id,
+      type: 'photo',
+      reason: 'offensive',
+      details: reason,
+    });
+  };
+
+  if (loading) return (
+    <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="w-8 h-8 border-2 border-yellow-400/30 border-t-yellow-400 rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!current) return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center px-6 text-center">
+      <p className="text-5xl mb-4">🎉</p>
+      <p className="text-white font-black text-xl mb-2">¡Has visto todo!</p>
+      <p className="text-white/40 text-sm">Vuelve más tarde para ver nuevas fotos</p>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-black flex flex-col max-w-md mx-auto">
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        {/* Credits */}
-        <div className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5">
+        <div
+          onClick={() => router.push('buy-credits')}
+          className="flex items-center gap-1.5 bg-white/10 rounded-full px-3 py-1.5 cursor-pointer"
+        >
           <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center">
             <span className="text-black text-xs font-black">C</span>
           </div>
-          <span className="text-white font-bold text-sm">120</span>
+          <span className="text-white font-bold text-sm">{credits}</span>
           <Plus className="w-3.5 h-3.5 text-white/60" />
         </div>
-
-        {/* Logo */}
         <Image src="/logo.PNG" alt="Winko" width={100} height={36} className="object-contain" priority />
-
-        {/* Hot streak */}
         <button className="text-2xl">🔥</button>
       </div>
 
@@ -59,7 +159,7 @@ export default function FeedPage() {
       <div className="flex items-center justify-center gap-2 px-4 pb-3">
         <Shield className="w-3.5 h-3.5 text-white/40" />
         <span className="text-white/40 text-xs">
-          {t('anonymous')} · {t('noFaces')} · {t('away', { distance: MOCK_PHOTO.distance_km })}
+          {t('anonymous')} · {t('noFaces')} · {current.distance_km ? t('away', { distance: Math.round(current.distance_km) }) : 'Global'}
         </span>
       </div>
 
@@ -75,45 +175,39 @@ export default function FeedPage() {
               </svg>
             </div>
             <div>
-              <p className="text-white font-bold text-sm leading-none">{MOCK_PHOTO.nickname}</p>
-              <p className="text-white/50 text-xs flex items-center gap-1 mt-0.5">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="w-3 h-3">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-                </svg>
-                {MOCK_PHOTO.distance_km} km away
+              <p className="text-white font-bold text-sm leading-none">{current.nickname}</p>
+              <p className="text-white/50 text-xs mt-0.5">
+                {current.age} · {current.distance_km ? `${Math.round(current.distance_km)} km` : 'Global'}
               </p>
             </div>
           </div>
-
-          <div className="bg-black/60 backdrop-blur rounded-full px-3 py-2 flex items-center gap-1.5">
-            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth={2} className="w-4 h-4 opacity-70">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
-            </svg>
-            <span className="text-white text-sm font-semibold capitalize">{t(`category.${MOCK_PHOTO.category}`)}</span>
+          <div className="bg-black/60 backdrop-blur rounded-full px-3 py-2">
+            <span className="text-white text-sm font-semibold capitalize">{current.category}</span>
           </div>
         </div>
 
-        {/* Photo placeholder */}
-        <div className="aspect-[3/4] flex items-center justify-center bg-gradient-to-b from-[#1a1500] to-[#0a0a0a]">
-          <div className="w-32 h-32 rounded-full bg-yellow-400 flex items-center justify-center">
-            <svg viewBox="0 0 100 100" className="w-24 h-24">
-              <circle cx="35" cy="40" r="8" fill="black" />
-              <path d="M 55 30 Q 67 42 78 30" stroke="black" strokeWidth="6" fill="none" strokeLinecap="round" />
-              <path d="M 20 65 Q 50 88 80 65" stroke="black" strokeWidth="6" fill="none" strokeLinecap="round" />
-              {/* Shine lines */}
-              <line x1="82" y1="18" x2="90" y2="10" stroke="black" strokeWidth="4" strokeLinecap="round" />
-              <line x1="88" y1="28" x2="98" y2="26" stroke="black" strokeWidth="4" strokeLinecap="round" />
-              <line x1="80" y1="8" x2="84" y2="0" stroke="black" strokeWidth="4" strokeLinecap="round" />
-            </svg>
-          </div>
+        {/* Photo */}
+        <div className="aspect-[3/4]">
+          {current.photo_url
+            ? <img src={current.photo_url} alt="" className="w-full h-full object-cover" />
+            : <div className="w-full h-full bg-gradient-to-b from-[#1a1500] to-[#0a0a0a] flex items-center justify-center">
+                <div className="w-32 h-32 rounded-full bg-yellow-400 flex items-center justify-center">
+                  <svg viewBox="0 0 100 100" className="w-24 h-24">
+                    <circle cx="35" cy="40" r="8" fill="black" />
+                    <path d="M 55 30 Q 67 42 78 30" stroke="black" strokeWidth="6" fill="none" strokeLinecap="round" />
+                    <path d="M 20 65 Q 50 88 80 65" stroke="black" strokeWidth="6" fill="none" strokeLinecap="round" />
+                  </svg>
+                </div>
+              </div>
+          }
         </div>
 
         {/* Counter + report */}
         <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
           <div className="bg-black/60 backdrop-blur rounded-full px-3 py-1.5">
-            <span className="text-white/70 text-sm font-medium">{MOCK_PHOTO.current}/{MOCK_PHOTO.total}</span>
+            <span className="text-white/70 text-sm font-medium">{index + 1}/{queue.length}</span>
           </div>
-          <button className="w-9 h-9 bg-black/60 backdrop-blur rounded-full flex items-center justify-center">
+          <button onClick={handleReport} className="w-9 h-9 bg-black/60 backdrop-blur rounded-full flex items-center justify-center">
             <Flag className="w-4 h-4 text-white/70" />
           </button>
         </div>
@@ -125,9 +219,11 @@ export default function FeedPage() {
           <button
             key={r.value}
             onClick={() => handleVote(r.value)}
+            disabled={!!voted || submitting}
             className={cn(
               'flex flex-col items-center gap-1.5 rounded-full w-16 h-16 border-2 justify-center transition-all active:scale-90',
-              voted === r.value ? `${r.border} ${r.bg}` : 'border-white/20 bg-white/5'
+              voted === r.value ? `${r.border} ${r.bg}` : 'border-white/20 bg-white/5',
+              voted && voted !== r.value ? 'opacity-40' : ''
             )}
           >
             <span className="text-2xl">{r.emoji}</span>
@@ -154,7 +250,7 @@ export default function FeedPage() {
             className="flex-1 bg-transparent text-white placeholder-white/30 text-sm focus:outline-none"
           />
           {comment && (
-            <button className="w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
+            <button onClick={handleComment} className="w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
               <Send className="w-3.5 h-3.5 text-black" />
             </button>
           )}
@@ -163,33 +259,22 @@ export default function FeedPage() {
 
       {/* Bottom nav */}
       <div className="flex items-center justify-around px-8 pb-8 pt-2 border-t border-white/5">
-        <button className="flex flex-col items-center gap-1">
+        <button onClick={() => router.push('upload')} className="flex flex-col items-center gap-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <span className="text-white/40 text-xs">{useTranslations('nav')('upload')}</span>
+          <span className="text-white/40 text-xs">{t('...')}</span>
         </button>
-
-        {/* Center logo button */}
         <button className="w-14 h-14 rounded-full bg-yellow-400 flex items-center justify-center -mt-6 shadow-lg shadow-yellow-400/30 overflow-hidden">
           <Image src="/logo-icon.PNG" alt="Winko" width={40} height={40} className="object-contain" />
         </button>
-
-        <button className="flex flex-col items-center gap-1">
+        <button onClick={() => router.push('profile')} className="flex flex-col items-center gap-1">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5} className="w-6 h-6 text-white/50">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
           </svg>
-          <span className="text-white/40 text-xs">{useTranslations('nav')('profile')}</span>
+          <span className="text-white/40 text-xs">Profile</span>
         </button>
       </div>
     </div>
-  );
-}
-
-function Shield({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={className}>
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-    </svg>
   );
 }

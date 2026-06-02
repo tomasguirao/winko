@@ -42,7 +42,15 @@ export default function AdultsOnlyPage() {
       key: 'terms' as const, content: (
         <span>
           {t('check3pre')}
-          <span className="text-yellow-400 underline">{t('check3Terms')}</span>
+          <a
+            href="/es/legal/terms"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="text-yellow-400 underline underline-offset-2 hover:text-yellow-300"
+          >
+            {t('check3Terms')}
+          </a>
         </span>
       )
     },
@@ -50,7 +58,15 @@ export default function AdultsOnlyPage() {
       key: 'privacy' as const, content: (
         <span>
           {t('check4pre')}
-          <span className="text-yellow-400 underline">{t('check4Privacy')}</span>
+          <a
+            href="/es/legal/privacy"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            className="text-yellow-400 underline underline-offset-2 hover:text-yellow-300"
+          >
+            {t('check4Privacy')}
+          </a>
         </span>
       )
     },

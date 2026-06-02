@@ -4,15 +4,18 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Plus, ChevronRight, BarChart2, Bell, ImageIcon, Trash2, User, Lock, Shield, Eye, Cookie, HelpCircle } from 'lucide-react';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { createClient } from '@/lib/supabase/client';
+import { useEffect, useState } from 'react';
 
-const MOCK_USER = {
-  nickname: 'Nova7421',
-  handle: '@nova7421',
-  verified: true,
-  winkos: 24,
-  votes: 1200,
-  comments: 342,
-  credits: 120,
+type UserProfile = {
+  nickname: string; age: number; gender: string;
+  credits_balance: number; published_photos: number;
+  total_votes_received: number; total_comments_received: number;
+};
+
+const EMPTY_USER: UserProfile = {
+  nickname: '...', age: 0, gender: '', credits_balance: 0,
+  published_photos: 0, total_votes_received: 0, total_comments_received: 0,
 };
 
 const MenuItem = ({ icon: Icon, label, description, onClick, danger = false }: {
@@ -37,6 +40,22 @@ const Divider = () => <div className="h-px bg-white/5 mx-4" />;
 
 export default function ProfilePage() {
   const router = useRouter();
+  const supabase = createClient();
+  const [profile, setProfile] = useState<UserProfile>(EMPTY_USER);
+
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase
+        .from('users')
+        .select('nickname, age, gender, credits_balance, published_photos, total_votes_received, total_comments_received')
+        .eq('id', user.id)
+        .single();
+      if (data) setProfile(data as UserProfile);
+    }
+    load();
+  }, []);
 
   return (
     <div className="min-h-screen bg-black flex flex-col max-w-md mx-auto">
@@ -50,7 +69,7 @@ export default function ProfilePage() {
           <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center">
             <span className="text-black text-xs font-black">C</span>
           </div>
-          <span className="text-white font-bold text-sm">{MOCK_USER.credits}</span>
+          <span className="text-white font-bold text-sm">{profile.credits_balance}</span>
           <Plus className="w-3.5 h-3.5 text-white/60" />
         </div>
         <div className="absolute left-1/2 -translate-x-1/2 mt-[3px]">
@@ -78,27 +97,31 @@ export default function ProfilePage() {
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-1.5 mb-0.5">
-                <p className="text-white font-black text-lg">{MOCK_USER.nickname}</p>
+                <p className="text-white font-black text-lg">{profile.nickname}</p>
                 <div className="w-5 h-5 bg-yellow-400 rounded-full flex items-center justify-center flex-shrink-0">
                   <svg viewBox="0 0 24 24" fill="black" className="w-3 h-3">
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                 </div>
               </div>
-              <p className="text-white/40 text-sm mb-3">{MOCK_USER.handle}</p>
+              <p className="text-white/40 text-sm mb-3">@{profile.nickname.toLowerCase()}</p>
               <div className="flex items-center gap-4">
                 <div className="text-center">
-                  <p className="text-white font-black text-base leading-none">{MOCK_USER.winkos}</p>
+                  <p className="text-white font-black text-base leading-none">{profile.published_photos}</p>
                   <p className="text-white/40 text-xs mt-0.5">Winkos</p>
                 </div>
                 <div className="w-px h-8 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-white font-black text-base leading-none">{(MOCK_USER.votes / 1000).toFixed(1)}K</p>
+                  <p className="text-white font-black text-base leading-none">
+                    {profile.total_votes_received >= 1000
+                      ? `${(profile.total_votes_received / 1000).toFixed(1)}K`
+                      : profile.total_votes_received}
+                  </p>
                   <p className="text-white/40 text-xs mt-0.5">Votos recibidos</p>
                 </div>
                 <div className="w-px h-8 bg-white/10" />
                 <div className="text-center">
-                  <p className="text-white font-black text-base leading-none">{MOCK_USER.comments}</p>
+                  <p className="text-white font-black text-base leading-none">{profile.total_comments_received}</p>
                   <p className="text-white/40 text-xs mt-0.5">Comentarios</p>
                 </div>
               </div>

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Plus, Upload, AlertTriangle, Shield, XCircle } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
+import { createClient } from '@/lib/supabase/client';
+import { useCredits } from '@/lib/supabase/hooks';
 import type { Category } from '@/types';
 
 const categories: { value: Category; label: string }[] = [
@@ -22,25 +24,66 @@ const declarations = [
 
 export default function UploadPage() {
   const router = useRouter();
+  const supabase = createClient();
+  const credits = useCredits();
   const fileRef = useRef<HTMLInputElement>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [photo, setPhoto] = useState<string | null>(null);
   const [category, setCategory] = useState<Category>('body');
+  const [visibility, setVisibility] = useState<'global' | 'country' | '100km' | '20km'>('global');
   const [checks, setChecks] = useState([false, false]);
   const [dragging, setDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
 
   const allChecked = checks.every(Boolean);
-  const canPublish = photo && allChecked;
+  const canPublish = photo && allChecked && !uploading;
 
-  const handleFile = (file: File) => {
-    if (!file.type.startsWith('image/')) return;
-    setPhoto(URL.createObjectURL(file));
+  const handleFile = (f: File) => {
+    if (!f.type.startsWith('image/')) return;
+    setFile(f);
+    setPhoto(URL.createObjectURL(f));
+  };
+
+  const handlePublish = async () => {
+    if (!file || !canPublish) return;
+    setUploading(true);
+    setError('');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('No autenticado');
+
+      // Upload to Storage
+      const ext = file.name.split('.').pop();
+      const path = `${user.id}/${Date.now()}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from('photos')
+        .upload(path, file, { contentType: file.type });
+      if (uploadError) throw uploadError;
+
+      // Call edge function
+      const { data: { session } } = await supabase.auth.getSession();
+      await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/upload-photo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({ storage_path: path, category, visibility }),
+      });
+
+      router.push('my-photos');
+    } catch (e: any) {
+      setError(e.message ?? 'Error al subir la foto');
+      setUploading(false);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (file) handleFile(file);
+    const f = e.dataTransfer.files[0];
+    if (f) handleFile(f);
   };
 
   return (
@@ -52,7 +95,7 @@ export default function UploadPage() {
           <div className="w-5 h-5 rounded-full bg-yellow-400 flex items-center justify-center">
             <span className="text-black text-xs font-black">C</span>
           </div>
-          <span className="text-white font-bold text-sm">120</span>
+          <span className="text-white font-bold text-sm">{credits}</span>
           <Plus className="w-3.5 h-3.5 text-white/60" />
         </div>
         <div className="absolute left-1/2 -translate-x-1/2 mt-[3px]">
@@ -118,7 +161,7 @@ export default function UploadPage() {
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" className="hidden"
-        onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])} />
+        onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f); }} />
 
       {/* Category */}
       <div className="px-4 pt-3 flex-shrink-0">
@@ -163,8 +206,11 @@ export default function UploadPage() {
           ))}
         </div>
 
+        {error && <p className="text-red-400 text-xs text-center mb-2">{error}</p>}
+
         {/* Publish */}
         <button
+          onClick={handlePublish}
           disabled={!canPublish}
           className={cn(
             'w-full font-black text-lg rounded-2xl py-3.5 flex items-center justify-center gap-3 transition-all mb-3',
@@ -172,7 +218,7 @@ export default function UploadPage() {
           )}
         >
           <Upload className="w-5 h-5" />
-          Publish Photo
+          {uploading ? 'Subiendo...' : 'Publish Photo'}
         </button>
 
         {/* Nav */}

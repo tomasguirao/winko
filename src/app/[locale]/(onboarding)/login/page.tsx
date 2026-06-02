@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { createClient } from '@/lib/supabase/client';
 
 export default function LoginPage() {
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string ?? 'es';
   const supabase = createClient();
 
   const [form, setForm] = useState({ email: '', password: '' });
@@ -27,7 +29,7 @@ export default function LoginPage() {
       setLoading(false);
       return;
     }
-    router.push('../../feed');
+    router.push(`/${locale}/feed`);
   };
 
   const handleForgot = async () => {
@@ -79,7 +81,7 @@ export default function LoginPage() {
 
       <div className="flex items-center gap-2 mt-6">
         <span className="text-white/40 text-sm">¿No tienes cuenta?</span>
-        <button onClick={() => router.push('../adults-only')} className="text-yellow-400 text-sm underline underline-offset-2">
+        <button onClick={() => router.push(`/${locale}/adults-only`)} className="text-yellow-400 text-sm underline underline-offset-2">
           Regístrate
         </button>
       </div>

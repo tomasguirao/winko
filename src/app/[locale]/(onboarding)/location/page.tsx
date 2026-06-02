@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { MapPin, Lock, Shield } from 'lucide-react';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
@@ -10,18 +10,16 @@ import { createClient } from '@/lib/supabase/client';
 export default function LocationPage() {
   const t = useTranslations('onboarding.location');
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string ?? 'es';
   const supabase = createClient();
 
-  const saveLocation = async (lat: number | null, lng: number | null, permission: boolean) => {
+  const saveLocation = async (lat: number | null, lng: number | null) => {
     const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
+    if (user && lat && lng) {
       await supabase.from('users').update({
-        location_permission: permission,
-        ...(lat && lng ? {
-          latitude: lat,
-          longitude: lng,
-          location: `POINT(${lng} ${lat})`,
-        } : {}),
+        location: `POINT(${lng} ${lat})`,
+        location_updated_at: new Date().toISOString(),
       }).eq('id', user.id);
     }
   };
@@ -30,20 +28,20 @@ export default function LocationPage() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (pos) => {
-          await saveLocation(pos.coords.latitude, pos.coords.longitude, true);
-          router.push('../../feed');
+          await saveLocation(pos.coords.latitude, pos.coords.longitude);
+          router.push(`/${locale}/feed`);
         },
         async () => {
-          await saveLocation(null, null, false);
-          router.push('../../feed');
+          router.push(`/${locale}/feed`);
         }
       );
+    } else {
+      router.push(`/${locale}/feed`);
     }
   };
 
-  const handleSkip = async () => {
-    await saveLocation(null, null, false);
-    router.push('../../feed');
+  const handleSkip = () => {
+    router.push(`/${locale}/feed`);
   };
 
   return (
