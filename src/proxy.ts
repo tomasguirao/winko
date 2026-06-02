@@ -5,9 +5,8 @@ import { routing } from './i18n/routing'
 
 const intlMiddleware = createIntlMiddleware(routing)
 
-const PROTECTED_ROUTES = ['/feed', '/upload', '/profile', '/credits', '/my-photos', '/alerts', '/buy-credits', '/results']
-const ADMIN_ROUTES = ['/admin']
-const AUTH_ROUTES = ['/login', '/register', '/adults-only']
+const PROTECTED_ROUTES = ['/feed', '/upload', '/profile', '/my-photos', '/alerts', '/buy-credits', '/results']
+const ADMIN_ROUTES = ['/dashboard', '/moderation', '/users', '/reports', '/comments', '/credits', '/stats', '/legal']
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -17,10 +16,9 @@ export async function proxy(request: NextRequest) {
 
   const isProtected = PROTECTED_ROUTES.some(r => pathnameWithoutLocale.startsWith(r))
   const isAdmin = ADMIN_ROUTES.some(r => pathnameWithoutLocale.startsWith(r))
-  const isAuth = AUTH_ROUTES.some(r => pathnameWithoutLocale.startsWith(r))
 
-  // Si no es ruta protegida, solo aplicar i18n
-  if (!isProtected && !isAdmin && !isAuth) {
+  // Rutas públicas y onboarding — sin verificar sesión
+  if (!isProtected && !isAdmin) {
     return intlMiddleware(request)
   }
 
@@ -48,15 +46,11 @@ export async function proxy(request: NextRequest) {
   // Detectar locale actual
   const locale = pathname.startsWith('/en') ? 'en' : 'es'
 
-  if ((isProtected || isAdmin) && !user) {
+  // Sin sesión → adults-only
+  if (!user) {
     return NextResponse.redirect(new URL(`/${locale}/adults-only`, request.url))
   }
 
-  if (isAuth && user) {
-    return NextResponse.redirect(new URL(`/${locale}/feed`, request.url))
-  }
-
-  // Aplicar i18n sobre la respuesta autenticada
   return intlMiddleware(request)
 }
 
