@@ -24,19 +24,30 @@ export default async function AdminLayout({
   const { locale } = await params
   const supabase = await createClient()
 
-  // Verificar sesión
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${locale}/login`)
+  // Verificar sesión via cookies (más fiable en SSR que getUser)
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) redirect(`/${locale}/login`)
 
   // Verificar que es admin
   const { data: profile } = await supabase
     .from('users')
     .select('is_admin, status, nickname')
-    .eq('id', user.id)
+    .eq('id', session.user.id)
     .single()
 
-  if (!profile || !profile.is_admin || profile.status !== 'active') {
-    redirect(`/${locale}/feed`)
+  // Si no puede leer el perfil o no es admin, mostrar error en vez de redirigir
+  const isAdmin = profile?.is_admin === true && profile?.status === 'active'
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="bg-[#111] border border-red-500/20 rounded-2xl p-8 max-w-sm text-center">
+          <p className="text-4xl mb-4">🚫</p>
+          <p className="text-white font-bold mb-2">Acceso denegado</p>
+          <p className="text-white/40 text-sm mb-4">No tienes permisos de administrador.</p>
+          <a href={`/${locale}/feed`} className="text-yellow-400 text-sm underline">Volver al feed</a>
+        </div>
+      </div>
+    )
   }
 
   return (
