@@ -42,10 +42,36 @@ export default function AboutYouPage() {
   const handleContinue = async () => {
     if (!canContinue) return;
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from('users').update({ gender, orientation }).eq('id', user.id);
+
+    try {
+      // Recuperar fecha de nacimiento guardada en el registro
+      const registerData = JSON.parse(sessionStorage.getItem('register_data') || '{}');
+      const dob = registerData.dob; // formato DD/MM/YYYY
+      const [day, month, year] = dob ? dob.split('/') : ['', '', ''];
+      const dateOfBirth = dob ? `${year}-${month}-${day}` : null;
+
+      // Obtener sesión
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session?.access_token) {
+        // Llamar a la edge function setup-profile
+        await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/setup-profile`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            date_of_birth: dateOfBirth,
+            gender,
+            orientation,
+          }),
+        });
+      }
+    } catch (e) {
+      console.error('setup-profile error:', e);
     }
+
     sessionStorage.setItem('about_you', JSON.stringify({ gender, orientation }));
     router.push('./your-identity');
     setLoading(false);
