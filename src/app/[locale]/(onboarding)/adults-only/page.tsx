@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Shield } from 'lucide-react';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/Button';
 export default function AdultsOnlyPage() {
   const t = useTranslations('onboarding.adultsOnly');
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string ?? 'es';
 
   const [checks, setChecks] = useState({
     age: false,
@@ -43,7 +45,7 @@ export default function AdultsOnlyPage() {
         <span>
           {t('check3pre')}
           <a
-            href="/es/legal/terms"
+            href={`/${locale}/legal/terms`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={e => e.stopPropagation()}
@@ -59,7 +61,7 @@ export default function AdultsOnlyPage() {
         <span>
           {t('check4pre')}
           <a
-            href="/es/legal/privacy"
+            href={`/${locale}/legal/privacy`}
             target="_blank"
             rel="noopener noreferrer"
             onClick={e => e.stopPropagation()}

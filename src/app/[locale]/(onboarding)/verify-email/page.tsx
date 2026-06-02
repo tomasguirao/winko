@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Mail, RefreshCw, Loader2 } from 'lucide-react';
 import { ProgressBar } from '@/components/onboarding/ProgressBar';
 import { Button } from '@/components/ui/Button';
@@ -11,13 +11,12 @@ import { createClient } from '@/lib/supabase/client';
 export default function VerifyEmailPage() {
   const t = useTranslations('onboarding.verifyEmail');
   const router = useRouter();
+  const params = useParams();
+  const locale = params.locale as string ?? 'es';
   const supabase = createClient();
   const [checking, setChecking] = useState(false);
   const [error, setError] = useState('');
   const [resent, setResent] = useState(false);
-  const [showLogin, setShowLogin] = useState(false);
-  const [loginPassword, setLoginPassword] = useState('');
-  const [loggingIn, setLoggingIn] = useState(false);
 
   const email = typeof window !== 'undefined'
     ? JSON.parse(sessionStorage.getItem('register_data') || '{}').email || 'tu@email.com'
@@ -27,9 +26,7 @@ export default function VerifyEmailPage() {
     setChecking(true);
     setError('');
 
-    // Forzar refresh de sesión para obtener el estado más reciente
     await supabase.auth.refreshSession();
-
     const { data: { user } } = await supabase.auth.getUser();
 
     if (user?.email_confirmed_at) {
@@ -37,22 +34,13 @@ export default function VerifyEmailPage() {
       return;
     }
 
-    // Segundo intento — a veces el token tarda en propagarse
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user?.email_confirmed_at) {
-      router.push('./about-you');
+    // Sin sesión — verificó en otro dispositivo → redirigir al login
+    if (!user) {
+      router.push(`/${locale}/login`);
       return;
     }
 
-    // Sin sesión — verificó en otro dispositivo, necesita hacer login
-    if (!session) {
-      setError('Verificaste el email en otro dispositivo. Inicia sesión para continuar.');
-      setChecking(false);
-      setShowLogin(true);
-      return;
-    }
-
-    setError('Tu email aún no está verificado. Abre el enlace del email y luego vuelve aquí.');
+    setError('Tu email aún no está verificado. Abre el enlace del email y vuelve aquí.');
     setChecking(false);
   };
 
@@ -60,20 +48,6 @@ export default function VerifyEmailPage() {
     await supabase.auth.resend({ type: 'signup', email });
     setResent(true);
     setTimeout(() => setResent(false), 5000);
-  };
-
-  const handleLoginAndContinue = async () => {
-    setLoggingIn(true);
-    const { error: loginError } = await supabase.auth.signInWithPassword({
-      email,
-      password: loginPassword,
-    });
-    if (loginError) {
-      setError('Contraseña incorrecta. Inténtalo de nuevo.');
-      setLoggingIn(false);
-      return;
-    }
-    router.push('./about-you');
   };
 
   return (
@@ -100,41 +74,22 @@ export default function VerifyEmailPage() {
 
       {error && <p className="text-red-400 text-sm text-center mb-4">{error}</p>}
 
-      {/* Login inline si verificó en otro dispositivo */}
-      {showLogin ? (
-        <div className="w-full flex flex-col gap-3 mb-4">
-          <p className="text-white/60 text-xs text-center">Introduce tu contraseña para continuar</p>
-          <input
-            type="password"
-            placeholder="Tu contraseña"
-            value={loginPassword}
-            onChange={e => setLoginPassword(e.target.value)}
-            className="w-full bg-white/10 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-white/30 focus:outline-none focus:border-yellow-400/50"
-          />
-          <Button onClick={handleLoginAndContinue} disabled={loggingIn || !loginPassword}>
-            {loggingIn ? 'Entrando...' : 'Entrar y continuar →'}
-          </Button>
-        </div>
-      ) : (
-        <>
-          <button
-            onClick={handleResend}
-            className="flex items-center gap-2 text-white/60 text-sm mb-6 hover:text-white transition-colors"
-          >
-            <RefreshCw className="w-4 h-4" />
-            {resent ? '✓ Email reenviado' : t('resend')}
-          </button>
+      <button
+        onClick={handleResend}
+        className="flex items-center gap-2 text-white/60 text-sm mb-6 hover:text-white transition-colors"
+      >
+        <RefreshCw className="w-4 h-4" />
+        {resent ? '✓ Email reenviado' : t('resend')}
+      </button>
 
-          <Button onClick={handleVerified} disabled={checking}>
-            {checking ? (
-              <span className="flex items-center gap-2 justify-center">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Comprobando...
-              </span>
-            ) : t('button')}
-          </Button>
-        </>
-      )}
+      <Button onClick={handleVerified} disabled={checking}>
+        {checking ? (
+          <span className="flex items-center gap-2 justify-center">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Comprobando...
+          </span>
+        ) : t('button')}
+      </Button>
     </div>
   );
 }
